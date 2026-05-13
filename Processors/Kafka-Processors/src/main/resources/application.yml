@@ -1,0 +1,10 @@
+kafka:
+  bootstrap:
+    servers: "localhost:9092"
+fraud:
+  detection:
+    threshold: 5000.00
+inventory:
+  low:
+    stock:
+      threshold: 10
