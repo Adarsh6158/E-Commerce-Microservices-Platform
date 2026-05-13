@@ -1,0 +1,30 @@
+{
+    "orderId": "O1",
+    "userId": "U1",
+    "totalAmount": 150.0,
+    "createdAt": "2025-10-01T10:00:00Z"
+}
+{
+    "orderId": "O2",
+    "userId": "U2",
+    "totalAmount": 1200.0,
+    "createdAt": "2025-10-01T11:00:00Z"
+}
+{
+    "orderId": "O3",
+    "userId": "U1",
+    "totalAmount": 50.0,
+    "createdAt": "2025-10-02T09:00:00Z"
+}
+{
+    "orderId": "O4",
+    "userId": "U3",
+    "totalAmount": 5000.0,
+    "createdAt": "2025-10-02T10:00:00Z"
+}
+{
+    "orderId": "O5",
+    "userId": "U2",
+    "totalAmount": 500.0,
+    "createdAt": "2025-10-03T10:00:00Z"
+}

@@ -1,0 +1,7 @@
+spark:
+  app:
+    name: "ECommerce-Spark-Jobs"
+  master: "local[*]"
+data:
+  orders:
+    path: "src/main/resources/mock_orders.json"
