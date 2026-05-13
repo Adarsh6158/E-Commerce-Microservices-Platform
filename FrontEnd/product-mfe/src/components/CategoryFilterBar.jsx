@@ -4,6 +4,7 @@ const CATEGORY_ICONS = {
   'Electronics':     '🖥️',
   'Clothing':        '👕',
   'Home & Kitchen':  '🏠',
+  'Home & Garden':   '🪴',
   'Books':           '📚',
   'Sports & Outdoors': '⚽',
   'Beauty & Health': '💄',
