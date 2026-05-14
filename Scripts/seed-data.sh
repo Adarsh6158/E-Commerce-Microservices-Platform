@@ -75,7 +75,11 @@ if ! echo "db.adminCommand('ping')" | $MONGOSH_CMD "$MONGO_URI" &>/dev/null; the
 fi
 echo -e "${GRAY}│  ├─${NC} ${GREEN}✓ Connection established${NC}"
 
-$MONGOSH_CMD "mongodb://pricing_user:pricing_secret_pwd@localhost:27017/catalog_db?authSource=admin" --quiet --file "$SCRIPT_DIR/mongo-seed-catalog.js" > /dev/null 2>&1 || true
+if [[ "$MONGOSH_CMD" == *"docker"* ]] || [[ "$MONGOSH_CMD" == *"podman"* ]]; then
+  $CONTAINER_CMD exec -i mongodb mongosh "mongodb://pricing_user:pricing_secret_pwd@localhost:27017/catalog_db?authSource=admin" --quiet < "$SCRIPT_DIR/mongo-seed-catalog.js" > /dev/null 2>&1 || true
+else
+  $MONGOSH_CMD "mongodb://pricing_user:pricing_secret_pwd@localhost:27017/catalog_db?authSource=admin" --quiet --file "$SCRIPT_DIR/mongo-seed-catalog.js" > /dev/null 2>&1 || true
+fi
 echo -e "${GRAY}│  ├─${NC} ${GREEN}✓ Populated catalog_db${NC}"
 
 $MONGOSH_CMD "mongodb://pricing_user:pricing_secret_pwd@localhost:27017/pricing_db?authSource=admin" --quiet --eval '
@@ -137,8 +141,9 @@ BULK_DATA=$($CONTAINER_CMD exec -i mongodb mongosh "mongodb://pricing_user:prici
     bulk.push(JSON.stringify({
       name: p.name, description: p.description || "", sku: p.sku, brand: p.brand,
       categoryId: p.categoryId || "", categoryName: cats[p.categoryId] || "",
-      basePrice: parseFloat(p.basePrice.toString()), imageUrl: p.imageUrl || "",
-      active: true, updatedAt: (p.updatedAt || new Date()).toISOString()
+      basePrice: parseFloat(p.basePrice.toString()), image: p.image || "",
+      thumbnail: p.thumbnail || "", galleryImages: p.galleryImages || [],
+      altText: p.altText || "", active: true, updatedAt: (p.updatedAt || new Date()).toISOString()
     }));
   });
   print(bulk.join("\n") + "\n");

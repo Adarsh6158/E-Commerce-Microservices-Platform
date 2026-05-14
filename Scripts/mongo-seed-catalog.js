@@ -1,12 +1,8 @@
-// mongo-seed-catalog.js – Seeds catalog_db with categories,
-// products, and reviews.  Idempotent (uses upserts)
-// Run against: catalog_db
-
-// Categories (8)
+// mongo-seed-catalog.js
 const categories = [
   { name: "Electronics", slug: "electronics", description: "Laptops, phones, gadgets and accessories" },
   { name: "Clothing", slug: "clothing", description: "Men's and women's fashion apparel" },
-  { name: "Home & Kitchen", slug: "home-kitchen", description: "Furniture, decor and kitchen essentials" },
+  { name: "Home & Garden", slug: "home-garden", description: "Home furnishings and garden supplies" },
   { name: "Books", slug: "books", description: "Fiction, non-fiction, and academic" },
   { name: "Sports & Outdoors", slug: "sports-outdoors", description: "Fitness gear, camping, and sportswear" },
   { name: "Beauty & Health", slug: "beauty-health", description: "Skincare, makeup, vitamins and wellness" },
@@ -18,7 +14,7 @@ const catIds = {};
 categories.forEach(c => {
   db.categories.updateOne(
     { slug: c.slug },
-    { $set: { ...c, active: true, createdAt: new Date() }, $setOnInsert: { parentId: null } },
+    { $set: { name: c.name, description: c.description, active: true, updatedAt: new Date() }, $setOnInsert: { parentId: null, createdAt: new Date() } },
     { upsert: true }
   );
   const doc = db.categories.findOne({ slug: c.slug });
@@ -27,73 +23,58 @@ categories.forEach(c => {
 
 print(`✓ ${Object.keys(catIds).length} categories upserted.`);
 
-// — Products (50) 
 const products = [
-  // ———— Electronics (8) ————
-  { sku: "ELEC-001", name: "MacBook Pro 16\" M3", brand: "Apple", basePrice: NumberDecimal("2499.00"), cat: "electronics", weight: 2.1, desc: "Powerful laptop with M3 chip, 16\" Liquid Retina XDR display." },
-  { sku: "ELEC-002", name: "iPhone 15 Pro Max", brand: "Apple", basePrice: NumberDecimal("1199.00"), cat: "electronics", weight: 0.22, desc: "Titanium design, A17 Pro chip, 48MP camera system." },
-  { sku: "ELEC-003", name: "Samsung Galaxy S24 Ultra", brand: "Samsung", basePrice: NumberDecimal("1099.99"), cat: "electronics", weight: 0.23, desc: "AI-powered phone with S Pen, 200MP camera." },
-  { sku: "ELEC-004", name: "Sony WH-1000XM5 Headphones", brand: "Sony", basePrice: NumberDecimal("349.99"), cat: "electronics", weight: 0.25, desc: "Industry-leading noise cancelling wireless headphones." },
-  { sku: "ELEC-005", name: "Dell UltraSharp 27\" 4K Monitor", brand: "Dell", basePrice: NumberDecimal("629.00"), cat: "electronics", weight: 6.5, desc: "27-inch 4K UHD USB-C hub monitor for professionals." },
-  { sku: "ELEC-006", name: "Logitech MX Master 3S Mouse", brand: "Logitech", basePrice: NumberDecimal("99.99"), cat: "electronics", weight: 0.14, desc: "Ergonomic wireless mouse with MagSpeed scroll wheel." },
-  { sku: "ELEC-007", name: "iPad Air M2 11\"", brand: "Apple", basePrice: NumberDecimal("599.00"), cat: "electronics", weight: 0.46, desc: "Thin, light, powerful tablet with M2 chip." },
-  { sku: "ELEC-008", name: "Bose SoundLink Flex Speaker", brand: "Bose", basePrice: NumberDecimal("149.00"), cat: "electronics", weight: 0.59, desc: "Portable Bluetooth speaker with deep bass." },
-
-  // ———— Clothing (7) ————
-  { sku: "CLTH-001", name: "Nike Dri-FIT Running T-Shirt", brand: "Nike", basePrice: NumberDecimal("35.00"), cat: "clothing", weight: 0.15, desc: "Lightweight moisture-wicking running tee." },
-  { sku: "CLTH-002", name: "Levi's 501 Original Jeans", brand: "Levi's", basePrice: NumberDecimal("69.50"), cat: "clothing", weight: 0.8, desc: "Classic straight-leg jeans with button fly." },
-  { sku: "CLTH-003", name: "Adidas Ultraboost 23 Shoes", brand: "Adidas", basePrice: NumberDecimal("190.00"), cat: "clothing", weight: 0.65, desc: "Responsive Boost midsole with Primeknit upper." },
-  { sku: "CLTH-004", name: "Patagonia Better Sweater", brand: "Patagonia", basePrice: NumberDecimal("139.00"), cat: "clothing", weight: 0.5, desc: "Warm fleece jacket made from recycled polyester." },
-  { sku: "CLTH-005", name: "Uniqlo Heattech Thermal Top", brand: "Uniqlo", basePrice: NumberDecimal("19.90"), cat: "clothing", weight: 0.2, desc: "Bio-warming thermal innerwear for cold days." },
-  { sku: "CLTH-006", name: "Columbia Waterproof Rain Jacket", brand: "Columbia", basePrice: NumberDecimal("89.99"), cat: "clothing", weight: 0.4, desc: "Packable rain jacket with Omni-Tech waterproofing." },
-  { sku: "CLTH-007", name: "Hanes ComfortSoft Cotton Socks 6-Pack", brand: "Hanes", basePrice: NumberDecimal("12.99"), cat: "clothing", weight: 0.25, desc: "Soft cotton blend everyday socks." },
-
-  // ———— Home & Kitchen (7) ————
-  { sku: "HOME-001", name: "Instant Pot Duo 7-in-1", brand: "Instant Pot", basePrice: NumberDecimal("89.95"), cat: "home-kitchen", weight: 5.5, desc: "Pressure cooker, slow cooker, rice cooker and more." },
-  { sku: "HOME-002", name: "Dyson V15 Detect Vacuum", brand: "Dyson", basePrice: NumberDecimal("749.99"), cat: "home-kitchen", weight: 3.1, desc: "Laser-guided cordless vacuum with HEPA filtration." },
-  { sku: "HOME-003", name: "KitchenAid Stand Mixer 5qt", brand: "KitchenAid", basePrice: NumberDecimal("379.99"), cat: "home-kitchen", weight: 11.5, desc: "Tilt-head stand mixer with 10 speeds." },
-  { sku: "HOME-004", name: "Philips Hue Smart Bulb 4-Pack", brand: "Philips", basePrice: NumberDecimal("49.99"), cat: "home-kitchen", weight: 0.6, desc: "Color-changing smart LED bulbs with app control." },
-  { sku: "HOME-005", name: "Nespresso Vertuo Next Coffee Maker", brand: "Nespresso", basePrice: NumberDecimal("159.00"), cat: "home-kitchen", weight: 4.0, desc: "Single-serve capsule coffee machine with crema." },
-  { sku: "HOME-006", name: "Cuisinart 14-Cup Food Processor", brand: "Cuisinart", basePrice: NumberDecimal("199.95"), cat: "home-kitchen", weight: 7.0, desc: "Large capacity food processor with multiple blades." },
-  { sku: "HOME-007", name: "Lodge Cast Iron Skillet 12\"", brand: "Lodge", basePrice: NumberDecimal("39.90"), cat: "home-kitchen", weight: 3.6, desc: "Pre-seasoned cast iron for stovetop and oven use." },
-
-  // ———— Books (6) ————
-  { sku: "BOOK-001", name: "Atomic Habits by James Clear", brand: "Penguin", basePrice: NumberDecimal("16.99"), cat: "books", weight: 0.35, desc: "Build good habits, break bad ones–tiny changes, remarkable results." },
-  { sku: "BOOK-002", name: "The Pragmatic Programmer (20th Anniversary)", brand: "Addison-Wesley", basePrice: NumberDecimal("49.99"), cat: "books", weight: 0.65, desc: "Classic software development guide–from journeyman to master." },
-  { sku: "BOOK-003", name: "Dune by Frank Herbert", brand: "Ace Books", basePrice: NumberDecimal("10.99"), cat: "books", weight: 0.4, desc: "Epic science-fiction saga of power, betrayal and survival." },
-  { sku: "BOOK-004", name: "Designing Data-Intensive Applications", brand: "O'Reilly", basePrice: NumberDecimal("44.99"), cat: "books", weight: 0.7, desc: "Deep dive into the architecture of modern data systems." },
-  { sku: "BOOK-005", name: "Sapiens by Yuval Noah Harari", brand: "Harper", basePrice: NumberDecimal("18.99"), cat: "books", weight: 0.45, desc: "Brief history of humankind from the Stone Age to Silicon Valley." },
-  { sku: "BOOK-006", name: "Clean Code by Robert C. Martin", brand: "Prentice Hall", basePrice: NumberDecimal("39.99"), cat: "books", weight: 0.55, desc: "Handbook of agile software craftsmanship." },
-
-  // ———— Sports & Outdoors (6) ————
-  { sku: "SPRT-001", name: "Yeti Rambler 26oz Water Bottle", brand: "Yeti", basePrice: NumberDecimal("35.00"), cat: "sports-outdoors", weight: 0.5, desc: "Durable stainless steel insulated water bottle." },
-  { sku: "SPRT-002", name: "Fitbit Charge 6 Fitness Tracker", brand: "Fitbit", basePrice: NumberDecimal("159.95"), cat: "sports-outdoors", weight: 0.04, desc: "Heart rate, sleep tracking, built-in GPS." },
-  { sku: "SPRT-003", name: "Coleman 4-Person Sundome Tent", brand: "Coleman", basePrice: NumberDecimal("79.99"), cat: "sports-outdoors", weight: 4.1, desc: "Easy-setup dome tent with WeatherTec system." },
-  { sku: "SPRT-004", name: "TRX All-in-One Suspension Trainer", brand: "TRX", basePrice: NumberDecimal("149.95"), cat: "sports-outdoors", weight: 0.8, desc: "Full body workout system for any fitness level." },
-  { sku: "SPRT-005", name: "Manduka PRO Yoga Mat 6mm", brand: "Manduka", basePrice: NumberDecimal("120.00"), cat: "sports-outdoors", weight: 3.5, desc: "Dense cushioning, lifetime guarantee yoga mat." },
-  { sku: "SPRT-006", name: "Osprey Atmos AG 65 Backpack", brand: "Osprey", basePrice: NumberDecimal("270.00"), cat: "sports-outdoors", weight: 2.2, desc: "Anti-gravity suspension hiking backpack." },
-
-  // ———— Beauty & Health (6) ————
-  { sku: "BEAU-001", name: "CeraVe Moisturizing Cream 16oz", brand: "CeraVe", basePrice: NumberDecimal("18.99"), cat: "beauty-health", weight: 0.55, desc: "Rich moisturizer with ceramides and hyaluronic acid." },
-  { sku: "BEAU-002", name: "Dyson Airwrap Multi-Styler", brand: "Dyson", basePrice: NumberDecimal("599.99"), cat: "beauty-health", weight: 0.66, desc: "Curl, wave, smooth and dry with no extreme heat." },
-  { sku: "BEAU-003", name: "Oral-B iO Series 9 Electric Toothbrush", brand: "Oral-B", basePrice: NumberDecimal("299.99"), cat: "beauty-health", weight: 0.3, desc: "AI-powered brushing with interactive display." },
-  { sku: "BEAU-004", name: "The Ordinary Niacinamide 10% Serum", brand: "The Ordinary", basePrice: NumberDecimal("6.50"), cat: "beauty-health", weight: 0.08, desc: "High-strength vitamin and mineral blemish formula." },
-  { sku: "BEAU-005", name: "Neutrogena Hydro Boost Water Gel", brand: "Neutrogena", basePrice: NumberDecimal("19.97"), cat: "beauty-health", weight: 0.2, desc: "Oil-free gel moisturizer for supple skin." },
-  { sku: "BEAU-006", name: "Vitamin D3 5000 IU Softgels 360ct", brand: "NatureWise", basePrice: NumberDecimal("14.99"), cat: "beauty-health", weight: 0.3, desc: "Immune support and bone health supplement." },
-
-  // ———— Toys & Games (5) ————
-  { sku: "TOYS-001", name: "LEGO Technic Porsche 911 GT3 RS", brand: "LEGO", basePrice: NumberDecimal("169.99"), cat: "toys-games", weight: 2.8, desc: "2,704-piece build of the iconic sportscar." },
-  { sku: "TOYS-002", name: "Settlers of Catan Board Game", brand: "Catan Studio", basePrice: NumberDecimal("34.99"), cat: "toys-games", weight: 1.2, desc: "Award-winning strategy game for 3-4 players." },
-  { sku: "TOYS-003", name: "Nintendo Switch OLED Console", brand: "Nintendo", basePrice: NumberDecimal("349.99"), cat: "toys-games", weight: 0.42, desc: "Vibrant 7-inch OLED screen, versatile play modes." },
-  { sku: "TOYS-004", name: "Rubik's Cube 3x3 Speed Cube", brand: "Rubik's", basePrice: NumberDecimal("11.99"), cat: "toys-games", weight: 0.1, desc: "Classic puzzle with smooth turning mechanism." },
-  { sku: "TOYS-005", name: "Monopoly Classic Board Game", brand: "Hasbro", basePrice: NumberDecimal("19.99"), cat: "toys-games", weight: 1.0, desc: "The classic fast-dealing property trading game." },
-
-  // ———— Groceries (5) ————
-  { sku: "GROC-001", name: "Kirkland Organic Extra Virgin Olive Oil 2L", brand: "Kirkland", basePrice: NumberDecimal("16.99"), cat: "groceries", weight: 2.1, desc: "Cold-pressed organic EVOO from Tuscany." },
-  { sku: "GROC-002", name: "Barilla Spaghetti No. 5 – 4 Pack", brand: "Barilla", basePrice: NumberDecimal("7.49"), cat: "groceries", weight: 2.0, desc: "Al-dente Italian pasta in 4x500g boxes." },
-  { sku: "GROC-003", name: "Green Mountain Coffee K-Cups 72ct", brand: "Keurig", basePrice: NumberDecimal("36.99"), cat: "groceries", weight: 1.1, desc: "Medium roast single-serve coffee pods." },
-  { sku: "GROC-004", name: "KIND Bars Variety Pack 24ct", brand: "KIND", basePrice: NumberDecimal("24.99"), cat: "groceries", weight: 1.0, desc: "Gluten-free nut bars in 6 flavors." },
-  { sku: "GROC-005", name: "San Pellegrino Sparkling Water 24-Pack", brand: "San Pellegrino", basePrice: NumberDecimal("19.99"), cat: "groceries", weight: 8.5, desc: "Natural Italian sparkling mineral water." },
+  { sku: "ELEC-001", name: "Apple MacBook Pro 14 Inch Space Grey", brand: "Apple", basePrice: NumberDecimal("165999.17"), cat: "electronics", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/laptops/apple-macbook-pro-14-inch-space-grey/thumbnail.webp", desc: "The MacBook Pro 14 Inch in Space Grey is a powerful and sleek laptop, featuring Apple's M1 Pro chip for exceptional performance and a stunning Retina display." },
+  { sku: "ELEC-002", name: "Asus Zenbook Pro Dual Screen Laptop", brand: "Asus", basePrice: NumberDecimal("149399.17"), cat: "electronics", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/laptops/asus-zenbook-pro-dual-screen-laptop/thumbnail.webp", desc: "The Asus Zenbook Pro Dual Screen Laptop is a high-performance device with dual screens, providing productivity and versatility for creative professionals." },
+  { sku: "ELEC-003", name: "Huawei Matebook X Pro", brand: "Huawei", basePrice: NumberDecimal("116199.17"), cat: "electronics", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/laptops/huawei-matebook-x-pro/thumbnail.webp", desc: "The Huawei Matebook X Pro is a slim and stylish laptop with a high-resolution touchscreen display, offering a premium experience for users on the go." },
+  { sku: "ELEC-004", name: "Lenovo Yoga 920", brand: "Lenovo", basePrice: NumberDecimal("91299.17"), cat: "electronics", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/laptops/lenovo-yoga-920/thumbnail.webp", desc: "The Lenovo Yoga 920 is a 2-in-1 convertible laptop with a flexible hinge, allowing you to use it as a laptop or tablet, offering versatility and portability." },
+  { sku: "ELEC-005", name: "iPhone 5s", brand: "Apple", basePrice: NumberDecimal("16599.17"), cat: "electronics", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/smartphones/iphone-5s/thumbnail.webp", desc: "The iPhone 5s is a classic smartphone known for its compact design and advanced features during its release. While it's an older model, it still provides a reliable user experience." },
+  { sku: "ELEC-006", name: "iPhone 6", brand: "Apple", basePrice: NumberDecimal("24899.17"), cat: "electronics", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/smartphones/iphone-6/thumbnail.webp", desc: "The iPhone 6 is a stylish and capable smartphone with a larger display and improved performance. It introduced new features and design elements, making it a popular choice in its time." },
+  { sku: "ELEC-007", name: "iPhone 13 Pro", brand: "Apple", basePrice: NumberDecimal("91299.17"), cat: "electronics", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/smartphones/iphone-13-pro/thumbnail.webp", desc: "The iPhone 13 Pro is a cutting-edge smartphone with a powerful camera system, high-performance chip, and stunning display. It offers advanced features for users who demand top-notch technology." },
+  { sku: "ELEC-008", name: "iPhone X", brand: "Apple", basePrice: NumberDecimal("74699.17"), cat: "electronics", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/smartphones/iphone-x/thumbnail.webp", desc: "The iPhone X is a flagship smartphone featuring a bezel-less OLED display, facial recognition technology (Face ID), and impressive performance. It represents a milestone in iPhone design and innovation." },
+  { sku: "CLOT-001", name: "Blue & Black Check Shirt", brand: "Fashion Trends", basePrice: NumberDecimal("2489.17"), cat: "clothing", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/mens-shirts/blue-&-black-check-shirt/thumbnail.webp", desc: "The Blue & Black Check Shirt is a stylish and comfortable men's shirt featuring a classic check pattern. Made from high-quality fabric, it's suitable for both casual and semi-formal occasions." },
+  { sku: "CLOT-002", name: "Gigabyte Aorus Men Tshirt", brand: "Gigabyte", basePrice: NumberDecimal("2074.17"), cat: "clothing", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/mens-shirts/gigabyte-aorus-men-tshirt/thumbnail.webp", desc: "The Gigabyte Aorus Men Tshirt is a cool and casual shirt for gaming enthusiasts. With the Aorus logo and sleek design, it's perfect for expressing your gaming style." },
+  { sku: "CLOT-003", name: "Man Plaid Shirt", brand: "Classic Wear", basePrice: NumberDecimal("2904.17"), cat: "clothing", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/mens-shirts/man-plaid-shirt/thumbnail.webp", desc: "The Man Plaid Shirt is a timeless and versatile men's shirt with a classic plaid pattern. Its comfortable fit and casual style make it a wardrobe essential for various occasions." },
+  { sku: "CLOT-004", name: "Man Short Sleeve Shirt", brand: "Casual Comfort", basePrice: NumberDecimal("1659.17"), cat: "clothing", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/mens-shirts/man-short-sleeve-shirt/thumbnail.webp", desc: "The Man Short Sleeve Shirt is a breezy and stylish option for warm days. With a comfortable fit and short sleeves, it's perfect for a laid-back yet polished look." },
+  { sku: "CLOT-005", name: "Black Women's Gown", brand: "Generic", basePrice: NumberDecimal("10789.17"), cat: "clothing", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/womens-dresses/black-women's-gown/thumbnail.webp", desc: "The Black Women's Gown is an elegant and timeless evening gown. With a sleek black design, it's perfect for formal events and special occasions, exuding sophistication and style." },
+  { sku: "CLOT-006", name: "Corset Leather With Skirt", brand: "Generic", basePrice: NumberDecimal("7469.17"), cat: "clothing", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/womens-dresses/corset-leather-with-skirt/thumbnail.webp", desc: "The Corset Leather With Skirt is a bold and edgy ensemble that combines a stylish corset with a matching skirt. Ideal for fashion-forward individuals, it makes a statement at any event." },
+  { sku: "CLOT-007", name: "Corset With Black Skirt", brand: "Generic", basePrice: NumberDecimal("6639.17"), cat: "clothing", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/womens-dresses/corset-with-black-skirt/thumbnail.webp", desc: "The Corset With Black Skirt is a chic and versatile outfit that pairs a fashionable corset with a classic black skirt. It offers a trendy and coordinated look for various occasions." },
+  { sku: "CLOT-008", name: "Dress Pea", brand: "Generic", basePrice: NumberDecimal("4149.17"), cat: "clothing", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/womens-dresses/dress-pea/thumbnail.webp", desc: "The Dress Pea is a stylish and comfortable dress with a pea pattern. Perfect for casual outings, it adds a playful and fun element to your wardrobe, making it a great choice for day-to-day wear." },
+  { sku: "HOME-001", name: "Annibale Colombo Bed", brand: "Annibale Colombo", basePrice: NumberDecimal("157699.17"), cat: "home-garden", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/furniture/annibale-colombo-bed/thumbnail.webp", desc: "The Annibale Colombo Bed is a luxurious and elegant bed frame, crafted with high-quality materials for a comfortable and stylish bedroom." },
+  { sku: "HOME-002", name: "Annibale Colombo Sofa", brand: "Annibale Colombo", basePrice: NumberDecimal("207499.17"), cat: "home-garden", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/furniture/annibale-colombo-sofa/thumbnail.webp", desc: "The Annibale Colombo Sofa is a sophisticated and comfortable seating option, featuring exquisite design and premium upholstery for your living room." },
+  { sku: "HOME-003", name: "Bedside Table African Cherry", brand: "Furniture Co.", basePrice: NumberDecimal("24899.17"), cat: "home-garden", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/furniture/bedside-table-african-cherry/thumbnail.webp", desc: "The Bedside Table in African Cherry is a stylish and functional addition to your bedroom, providing convenient storage space and a touch of elegance." },
+  { sku: "HOME-004", name: "Knoll Saarinen Executive Conference Chair", brand: "Knoll", basePrice: NumberDecimal("41499.17"), cat: "home-garden", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/furniture/knoll-saarinen-executive-conference-chair/thumbnail.webp", desc: "The Knoll Saarinen Executive Conference Chair is a modern and ergonomic chair, perfect for your office or conference room with its timeless design." },
+  { sku: "HOME-005", name: "Decoration Swing", brand: "Generic", basePrice: NumberDecimal("4979.17"), cat: "home-garden", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/home-decoration/decoration-swing/thumbnail.webp", desc: "The Decoration Swing is a charming addition to your home decor. Crafted with intricate details, it adds a touch of elegance and whimsy to any room." },
+  { sku: "HOME-006", name: "Family Tree Photo Frame", brand: "Generic", basePrice: NumberDecimal("2489.17"), cat: "home-garden", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/home-decoration/family-tree-photo-frame/thumbnail.webp", desc: "The Family Tree Photo Frame is a sentimental and stylish way to display your cherished family memories. With multiple photo slots, it tells the story of your loved ones." },
+  { sku: "HOME-007", name: "House Showpiece Plant", brand: "Generic", basePrice: NumberDecimal("3319.17"), cat: "home-garden", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/home-decoration/house-showpiece-plant/thumbnail.webp", desc: "The House Showpiece Plant is an artificial plant that brings a touch of nature to your home without the need for maintenance. It adds greenery and style to any space." },
+  { sku: "HOME-008", name: "Plant Pot", brand: "Generic", basePrice: NumberDecimal("1244.17"), cat: "home-garden", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/home-decoration/plant-pot/thumbnail.webp", desc: "The Plant Pot is a stylish container for your favorite plants. With a sleek design, it complements your indoor or outdoor garden, adding a modern touch to your plant display." },
+  { sku: "SPOR-001", name: "American Football", brand: "Generic", basePrice: NumberDecimal("1659.17"), cat: "sports-outdoors", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/sports-accessories/american-football/thumbnail.webp", desc: "The American Football is a classic ball used in American football games. It is designed for throwing and catching, making it an essential piece of equipment for the sport." },
+  { sku: "SPOR-002", name: "Baseball Ball", brand: "Generic", basePrice: NumberDecimal("746.17"), cat: "sports-outdoors", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/sports-accessories/baseball-ball/thumbnail.webp", desc: "The Baseball Ball is a standard baseball used in baseball games. It features a durable leather cover and is designed for pitching, hitting, and fielding in the game of baseball." },
+  { sku: "SPOR-003", name: "Baseball Glove", brand: "Generic", basePrice: NumberDecimal("2074.17"), cat: "sports-outdoors", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/sports-accessories/baseball-glove/thumbnail.webp", desc: "The Baseball Glove is a protective glove worn by baseball players. It is designed to catch and field the baseball, providing players with comfort and control during the game." },
+  { sku: "SPOR-004", name: "Basketball", brand: "Generic", basePrice: NumberDecimal("1244.17"), cat: "sports-outdoors", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/sports-accessories/basketball/thumbnail.webp", desc: "The Basketball is a standard ball used in basketball games. It is designed for dribbling, shooting, and passing in the game of basketball, suitable for both indoor and outdoor play." },
+  { sku: "BEAU-001", name: "Essence Mascara Lash Princess", brand: "Essence", basePrice: NumberDecimal("829.17"), cat: "beauty-health", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/beauty/essence-mascara-lash-princess/thumbnail.webp", desc: "The Essence Mascara Lash Princess is a popular mascara known for its volumizing and lengthening effects. Achieve dramatic lashes with this long-lasting and cruelty-free formula." },
+  { sku: "BEAU-002", name: "Eyeshadow Palette with Mirror", brand: "Glamour Beauty", basePrice: NumberDecimal("1659.17"), cat: "beauty-health", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/beauty/eyeshadow-palette-with-mirror/thumbnail.webp", desc: "The Eyeshadow Palette with Mirror offers a versatile range of eyeshadow shades for creating stunning eye looks. With a built-in mirror, it's convenient for on-the-go makeup application." },
+  { sku: "BEAU-003", name: "Powder Canister", brand: "Velvet Touch", basePrice: NumberDecimal("1244.17"), cat: "beauty-health", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/beauty/powder-canister/thumbnail.webp", desc: "The Powder Canister is a finely milled setting powder designed to set makeup and control shine. With a lightweight and translucent formula, it provides a smooth and matte finish." },
+  { sku: "BEAU-004", name: "Red Lipstick", brand: "Chic Cosmetics", basePrice: NumberDecimal("1078.17"), cat: "beauty-health", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/beauty/red-lipstick/thumbnail.webp", desc: "The Red Lipstick is a classic and bold choice for adding a pop of color to your lips. With a creamy and pigmented formula, it provides a vibrant and long-lasting finish." },
+  { sku: "BEAU-005", name: "Attitude Super Leaves Hand Soap", brand: "Attitude", basePrice: NumberDecimal("746.17"), cat: "beauty-health", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/skin-care/attitude-super-leaves-hand-soap/thumbnail.webp", desc: "Attitude Super Leaves Hand Soap is a natural and nourishing hand soap enriched with the goodness of super leaves. It cleanses and moisturizes your hands, leaving them feeling fresh and soft." },
+  { sku: "BEAU-006", name: "Olay Ultra Moisture Shea Butter Body Wash", brand: "Olay", basePrice: NumberDecimal("1078.17"), cat: "beauty-health", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/skin-care/olay-ultra-moisture-shea-butter-body-wash/thumbnail.webp", desc: "Olay Ultra Moisture Shea Butter Body Wash is a luxurious body wash that hydrates and nourishes your skin with the moisturizing power of shea butter. Enjoy a rich lather and silky-smooth skin." },
+  { sku: "BEAU-007", name: "Vaseline Men Body and Face Lotion", brand: "Vaseline", basePrice: NumberDecimal("829.17"), cat: "beauty-health", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/skin-care/vaseline-men-body-and-face-lotion/thumbnail.webp", desc: "Vaseline Men Body and Face Lotion is a specially formulated lotion designed to provide long-lasting moisture to men's skin. It absorbs quickly and helps keep the skin hydrated and healthy." },
+  { sku: "GROC-001", name: "Apple", brand: "Generic", basePrice: NumberDecimal("165.17"), cat: "groceries", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/groceries/apple/thumbnail.webp", desc: "Fresh and crisp apples, perfect for snacking or incorporating into various recipes." },
+  { sku: "GROC-002", name: "Beef Steak", brand: "Generic", basePrice: NumberDecimal("1078.17"), cat: "groceries", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/groceries/beef-steak/thumbnail.webp", desc: "High-quality beef steak, great for grilling or cooking to your preferred level of doneness." },
+  { sku: "GROC-003", name: "Cat Food", brand: "Generic", basePrice: NumberDecimal("746.17"), cat: "groceries", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/groceries/cat-food/thumbnail.webp", desc: "Nutritious cat food formulated to meet the dietary needs of your feline friend." },
+  { sku: "GROC-004", name: "Chicken Meat", brand: "Generic", basePrice: NumberDecimal("829.17"), cat: "groceries", weight: 0.5, image: "https://cdn.dummyjson.com/product-images/groceries/chicken-meat/thumbnail.webp", desc: "Fresh and tender chicken meat, suitable for various culinary preparations." },
+  { sku: "BOOK-001", name: "Atomic Habits by James Clear", brand: "Penguin", basePrice: NumberDecimal("1410.17"), cat: "books", weight: 0.5, image: "https://covers.openlibrary.org/b/isbn/9780593489392-L.jpg", desc: "Build good habits, break bad ones–tiny changes, remarkable results." },
+  { sku: "BOOK-002", name: "The Pragmatic Programmer", brand: "Addison-Wesley", basePrice: NumberDecimal("4149.17"), cat: "books", weight: 0.5, image: "https://covers.openlibrary.org/b/isbn/9780201616224-L.jpg", desc: "Classic software development guide." },
+  { sku: "BOOK-003", name: "Dune by Frank Herbert", brand: "Ace Books", basePrice: NumberDecimal("912.17"), cat: "books", weight: 0.5, image: "https://covers.openlibrary.org/b/isbn/9780441172719-L.jpg", desc: "Epic science-fiction saga." },
+  { sku: "BOOK-004", name: "Clean Code", brand: "Prentice Hall", basePrice: NumberDecimal("3319.17"), cat: "books", weight: 0.5, image: "https://covers.openlibrary.org/b/isbn/9780132350884-L.jpg", desc: "Handbook of agile software craftsmanship." },
+  { sku: "BOOK-005", name: "Designing Data-Intensive Applications", brand: "O'Reilly", basePrice: NumberDecimal("3734.17"), cat: "books", weight: 0.5, image: "https://covers.openlibrary.org/b/isbn/9781449373320-L.jpg", desc: "Deep dive into data systems." },
+  { sku: "BOOK-006", name: "Sapiens by Yuval Noah Harari", brand: "Harper", basePrice: NumberDecimal("1576.17"), cat: "books", weight: 0.5, image: "https://covers.openlibrary.org/b/isbn/9780062316097-L.jpg", desc: "Brief history of humankind." },
+  { sku: "TOYS-001", name: "LEGO Star Wars Millennium Falcon", brand: "LEGO", basePrice: NumberDecimal("13279.17"), cat: "toys-games", weight: 0.5, image: "https://images.unsplash.com/photo-1585366119957-80f30f55cf64?w=400&q=80", desc: "Detailed LEGO model of the Millennium Falcon." },
+  { sku: "TOYS-002", name: "Monopoly Classic Board Game", brand: "Hasbro", basePrice: NumberDecimal("1659.17"), cat: "toys-games", weight: 0.5, image: "https://images.unsplash.com/photo-1610890716171-60a6fc434b97?w=400&q=80", desc: "The fast-dealing property trading board game." },
+  { sku: "TOYS-003", name: "Hot Wheels 20-Car Pack", brand: "Hot Wheels", basePrice: NumberDecimal("2074.17"), cat: "toys-games", weight: 0.5, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=400&q=80", desc: "Awesome 20-car pack of 1:64 scale vehicles." },
+  { sku: "TOYS-004", name: "Rubik's Cube 3x3", brand: "Rubik's", basePrice: NumberDecimal("829.17"), cat: "toys-games", weight: 0.5, image: "https://images.unsplash.com/photo-1591994843349-f4129b61d365?w=400&q=80", desc: "The classic color-matching puzzle." },
+  { sku: "TOYS-005", name: "Nerf N-Strike Elite Disruptor", brand: "Nerf", basePrice: NumberDecimal("1244.17"), cat: "toys-games", weight: 0.5, image: "https://images.unsplash.com/photo-1528652422030-f14d86b5155f?w=400&q=80", desc: "Quick-draw blaster with 6-dart rotating drum." },
+  { sku: "TOYS-006", name: "Barbie Dreamhouse", brand: "Barbie", basePrice: NumberDecimal("16599.17"), cat: "toys-games", weight: 0.5, image: "https://images.unsplash.com/photo-1590855217887-8dcb4fb0289a?w=400&q=80", desc: "Three-story dollhouse with pool and elevator." },
 ];
 
 let inserted = 0;
@@ -108,8 +89,10 @@ products.forEach(p => {
         categoryId: catId,
         brand: p.brand,
         basePrice: p.basePrice,
-        imageUrl: "",
-        imageUrls: [],
+        image: p.image,
+        thumbnail: p.image,
+        galleryImages: [p.image],
+        altText: p.name,
         active: true,
         weight: p.weight,
         attributes: {},
@@ -123,38 +106,4 @@ products.forEach(p => {
 });
 
 print(`✓ ${inserted} products upserted.`);
-
-// — Sample Reviews (2 per first 10 products) 
-const reviewers = [
-  { userName: "TechGuru42", userId: "user-001" },
-  { userName: "ShopaholicMom", userId: "user-002" },
-  { userName: "BargainHunter", userId: "user-003" },
-  { userName: "OutdoorKing", userId: "user-004" },
-];
-
-const prodDocs = db.products.find().sort({ sku: 1 }).limit(10).toArray();
-let revCount = 0;
-prodDocs.forEach((prod, i) => {
-  for (let r = 0; r < 2; r++) {
-    const reviewer = reviewers[(i + r) % reviewers.length];
-    const rating = 3 + ((i + r) % 3); // 3, 4, or 5
-    db.reviews.updateOne(
-      { productId: prod._id.toString(), userId: reviewer.userId },
-      {
-        $set: {
-          userName: reviewer.userName,
-          rating: rating,
-          title: `Great ${rating === 5 ? 'product' : rating === 4 ? 'value' : 'purchase'}!`,
-          comment: `Solid quality for the price. Would ${rating >= 4 ? 'definitely' : 'probably'} buy again.`,
-          verified: true,
-          createdAt: new Date()
-        }
-      },
-      { upsert: true }
-    );
-    revCount++;
-  }
-});
-
-print(`✓ ${revCount} reviews upserted.`);
 print("✓ catalog_db seeding complete.");
