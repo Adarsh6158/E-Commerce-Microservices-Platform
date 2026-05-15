@@ -1,5 +1,7 @@
 import React, { Suspense, lazy, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { onMfeEvent, MfeEvents, emitMfeEvent } from '../lib/events';
 import { useAuth } from '../lib/auth';
@@ -7,10 +9,11 @@ import { useAuth } from '../lib/auth';
 const ProductApp = lazy(() => import('productMfe/App'));
 
 function LoadingFallback() {
+  const { t } = useTranslation();
   return (
     <div className="products-loading">
       <div className="spinner"></div>
-      <p className="products-loading__text">Loading products…</p>
+      <p className="products-loading__text">{t('loading_products')}…</p>
     </div>
   );
 }

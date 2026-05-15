@@ -11,6 +11,7 @@ import SearchPage from './pages/SearchPage';
 import CartPage from './pages/CartPage';
 import OrderPage from './pages/OrderPage';
 import AdminPage from './pages/AdminPage';
+import './lib/i18n';
 import './App.css';
 
 export default function App() {
