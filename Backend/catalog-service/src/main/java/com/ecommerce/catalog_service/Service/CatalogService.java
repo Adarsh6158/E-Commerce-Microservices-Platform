@@ -74,8 +74,19 @@ public class CatalogService {
         return productRepository.findByCategoryIdAndActiveTrue(categoryId);
     }
 
+    public Flux<Product> getByBrand(String brand) {
+        return productRepository.findByBrandAndActiveTrue(brand);
+    }
+
     public Flux<Product> getAllActive() {
         return productRepository.findByActiveTrue();
+    }
+
+    public Flux<String> getDistinctBrands() {
+        return productRepository.findByActiveTrue()
+                .map(Product::getBrand)
+                .filter(brand -> brand != null && !brand.trim().isEmpty())
+                .distinct();
     }
 
     public Mono<Product> create(Product product, String correlationId) {

@@ -12,10 +12,11 @@ import { LazyScrollSections } from './components/LazyScrollSections';
 import { RecentlyViewed } from './components/RecentlyViewed';
 import './App.css';
 
-export default function App({ initialProductId } = {}) {
+export default function App({ initialProductId, initialBrand } = {}) {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCategoryId, setActiveCategoryId] = useState(null);
+  const [activeBrand, setActiveBrand] = useState(initialBrand || null);
   const [selected, setSelected] = useState(null);
   const [price, setPrice] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -49,17 +50,24 @@ export default function App({ initialProductId } = {}) {
     return map;
   }, [categories]);
 
-  // Products filtered by active category
+  // Products filtered by active category or brand
   const filteredProducts = useMemo(() => {
-    if (!activeCategoryId) return products;
-    return products.filter(p => p.categoryId === activeCategoryId);
-  }, [products, activeCategoryId]);
+    let filtered = products;
+    if (activeCategoryId) {
+      filtered = filtered.filter(p => p.categoryId === activeCategoryId);
+    }
+    if (activeBrand) {
+      filtered = filtered.filter(p => p.brand === activeBrand);
+    }
+    return filtered;
+  }, [products, activeCategoryId, activeBrand]);
 
-  // Active category name for heading display
-  const activeCategoryName = useMemo(() => {
-    if (!activeCategoryId) return null;
-    return categoryMap[activeCategoryId]?.name || null;
-  }, [activeCategoryId, categoryMap]);
+  // Active title for heading display
+  const activeTitle = useMemo(() => {
+    if (activeBrand) return `${activeBrand} Collection`;
+    if (activeCategoryId) return categoryMap[activeCategoryId]?.name || null;
+    return null;
+  }, [activeBrand, activeCategoryId, categoryMap]);
 
   // Grouped products for the "For You" view
   const groupedProducts = useMemo(() => {
@@ -170,7 +178,7 @@ export default function App({ initialProductId } = {}) {
       />
 
       {/* 2. Hero Carousel (only on "For You" / no filter) */}
-      {!activeCategoryId && (
+      {!activeCategoryId && !activeBrand && (
         <HeroCarousel
           categories={categories}
           onSelectCategory={setActiveCategoryId}
@@ -181,11 +189,11 @@ export default function App({ initialProductId } = {}) {
         <div className="empty-state">
           <p className="empty-state__text">No products yet. Use the Admin panel to add some.</p>
         </div>
-      ) : activeCategoryId ? (
-        /* 3a. Filtered grid when a category is selected */
+      ) : (activeCategoryId || activeBrand) ? (
+        /* 3a. Filtered grid when a category or brand is selected */
         <ProductGrid
           products={filteredProducts}
-          categoryName={activeCategoryName}
+          categoryName={activeTitle}
           onClickProduct={openProduct}
         />
       ) : (

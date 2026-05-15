@@ -24,6 +24,11 @@ export default function ProductPage() {
     return params.get('id') || null;
   }, [location.search]);
 
+  const initialBrand = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('brand') || null;
+  }, [location.search]);
+
   useEffect(() => {
     emitMfeEvent(MfeEvents.AUTH_CHANGED, { user, isAuthenticated });
   }, [user, isAuthenticated]);
@@ -37,7 +42,10 @@ export default function ProductPage() {
   return (
     <ErrorBoundary>
       <Suspense fallback={<LoadingFallback />}>
-        <ProductApp initialProductId={initialProductId} />
+        <ProductApp 
+          initialProductId={initialProductId} 
+          initialBrand={initialBrand} 
+        />
       </Suspense>
     </ErrorBoundary>
   );

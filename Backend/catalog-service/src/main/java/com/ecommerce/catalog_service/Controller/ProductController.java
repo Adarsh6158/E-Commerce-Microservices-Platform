@@ -36,9 +36,19 @@ public class ProductController {
         return catalogService.getAllActive().map(DtoMapper::toDto);
     }
 
+    @GetMapping("/brands")
+    public Mono<java.util.List<String>> getBrands() {
+        return catalogService.getDistinctBrands().collectList();
+    }
+
     @GetMapping("/category/{categoryId}")
     public Flux<ProductDto> getByCategory(@PathVariable String categoryId) {
         return catalogService.getByCategory(categoryId).map(DtoMapper::toDto);
+    }
+
+    @GetMapping("/brand/{brand}")
+    public Flux<ProductDto> getByBrand(@PathVariable String brand) {
+        return catalogService.getByBrand(brand).map(DtoMapper::toDto);
     }
 
     @PostMapping

@@ -10,6 +10,8 @@ public interface ProductRepository extends ReactiveMongoRepository<Product, Stri
     Mono<Product> findBySku(String sku);
 
     Flux<Product> findByCategoryIdAndActiveTrue(String categoryId);
+    
+    Flux<Product> findByBrandAndActiveTrue(String brand);
 
     Flux<Product> findByActiveTrue();
 

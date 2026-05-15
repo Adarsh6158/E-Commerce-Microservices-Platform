@@ -271,6 +271,7 @@ export function Layout({ children }) {
               <h4 className="sf-footer__col-title">Shop</h4>
               <ul className="sf-footer__links">
                 <li><Link to="/">All Products</Link></li>
+                <li><Link to="/brands">Brand List</Link></li>
                 <li><Link to="/search">Search</Link></li>
                 <li><Link to="/cart">Cart</Link></li>
               </ul>
