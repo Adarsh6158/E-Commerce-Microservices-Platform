@@ -1,6 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 :root {
+  --sf-max-width: 1280px;
+  --sf-header-height: 64px;
+  --sf-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --sf-ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --sf-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --sf-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --sf-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+}
+
+[data-theme='light'], :root:not([data-theme]) {
   --sf-bg:              hsl(220, 20%, 98%);
+  --sf-bg-main:         hsl(220, 20%, 98%);
   --sf-bg-elevated:     hsl(0, 0%, 100%);
   --sf-bg-sunken:       hsl(220, 16%, 96%);
   --sf-surface:         hsl(0, 0%, 100%);
@@ -14,10 +25,42 @@
   --sf-accent-hover:    hsl(346, 84%, 54%);
   --sf-success:         hsl(152, 56%, 46%);
   --sf-error:           hsl(0, 72%, 56%);
-  --sf-max-width: 1280px;
-  --sf-header-height: 64px;
-  --sf-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --sf-ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+[data-theme='dark'] {
+  --sf-bg:              hsl(222, 47%, 8%);
+  --sf-bg-main:         hsl(222, 47%, 8%);
+  --sf-bg-elevated:     hsl(222, 47%, 14%);
+  --sf-bg-sunken:       hsl(222, 47%, 6%);
+  --sf-surface:         hsl(222, 47%, 16%);
+  --sf-surface-hover:   hsl(222, 47%, 20%);
+  --sf-border:          hsl(222, 47%, 22%);
+  --sf-border-subtle:   hsl(222, 47%, 12%);
+  --sf-text-primary:    hsl(210, 40%, 98%);
+  --sf-text-secondary:  hsl(215, 20%, 75%);
+  --sf-text-tertiary:   hsl(215, 15%, 55%);
+  --sf-accent:          hsl(346, 84%, 61%);
+  --sf-accent-hover:    hsl(346, 84%, 68%);
+  --sf-success:         hsl(152, 56%, 50%);
+  --sf-error:           hsl(0, 84%, 60%);
+}
+
+[data-theme='glass'] {
+  --sf-bg:              linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --sf-bg-main:         #0f172a;
+  --sf-bg-elevated:     rgba(30, 41, 59, 0.7);
+  --sf-bg-sunken:       rgba(0, 0, 0, 0.3);
+  --sf-surface:         rgba(30, 41, 59, 0.6);
+  --sf-surface-hover:   rgba(30, 41, 59, 0.8);
+  --sf-border:          rgba(255, 255, 255, 0.1);
+  --sf-border-subtle:   rgba(255, 255, 255, 0.05);
+  --sf-text-primary:    #ffffff;
+  --sf-text-secondary:  #94a3b8;
+  --sf-text-tertiary:   #64748b;
+  --sf-accent:          hsl(346, 84%, 61%);
+  --sf-accent-hover:    hsl(346, 84%, 54%);
+  --sf-success:         hsl(152, 56%, 46%);
+  --sf-error:           hsl(0, 72%, 56%);
 }
 *, *::before, *::after {
   box-sizing: border-box;

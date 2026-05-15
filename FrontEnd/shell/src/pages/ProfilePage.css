@@ -164,8 +164,8 @@
   width: 100%;
   padding: 0.875rem 1.125rem;
   border-radius: 0.875rem;
-  border: 1.5px solid hsla(220, 13%, 88%, 0.6);
-  background: hsla(0, 0%, 100%, 0.5);
+  border: 1.5px solid var(--sf-border);
+  background: var(--sf-bg-body);
   font-size: 0.9375rem;
   color: var(--sf-text-primary);
   outline: none;
@@ -175,7 +175,7 @@
 
 .profile-form .form-input:focus {
   border-color: var(--sf-accent);
-  background: #fff;
+  background: var(--sf-bg-elevated);
   box-shadow: 0 0 0 4px hsla(346, 84%, 61%, 0.12),
               0 2px 4px rgba(0, 0, 0, 0.02);
 }
