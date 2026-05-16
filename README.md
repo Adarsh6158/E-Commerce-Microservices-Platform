@@ -26,12 +26,12 @@
 ## Architecture
 
 ### System Overview
+<img width="1500" height="1000" alt="Architecture_design" src="https://github.com/user-attachments/assets/605c4b66-3d19-441f-9123-5bca145d8c23" />
 
-
-### Service Interaction Flow
 
 
 ### Database Design
+<img width="840" height="470" alt="DB Design" src="https://github.com/user-attachments/assets/9f4c227f-b796-4e34-9af2-db8e1fe5e311" />
 
 
 
