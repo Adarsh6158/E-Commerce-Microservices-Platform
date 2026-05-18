@@ -114,7 +114,6 @@ jacoco*.xml
 dist/
 build/
 bin/
-lib/
 .gradle/
 .gradle
 gradle-app.setting
