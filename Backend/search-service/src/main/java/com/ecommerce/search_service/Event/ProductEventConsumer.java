@@ -1,8 +1,8 @@
 package com.ecommerce.search_service.Event;
 
-import com.ecommerce.search_service.Domain.ProductDocument;
-import com.ecommerce.search_service.Service.SearchService;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.ecommerce.search_service.Dto.Event.ProductEventPayload;
+import com.ecommerce.search_service.Mapper.ProductSearchMapper;
+import com.ecommerce.search_service.Service.IndexingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,68 +12,41 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.time.Instant;
+import static com.ecommerce.search_service.Constant.EventConstants.*;
 
 @Component
 public class ProductEventConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(ProductEventConsumer.class);
 
-    private final SearchService searchService;
+    private final IndexingService indexingService;
+    private final ProductSearchMapper mapper;
     private final ObjectMapper objectMapper;
 
-    public ProductEventConsumer(SearchService searchService, ObjectMapper objectMapper) {
-        this.searchService = searchService;
+    public ProductEventConsumer(IndexingService indexingService,
+                                ProductSearchMapper mapper,
+                                ObjectMapper objectMapper) {
+        this.indexingService = indexingService;
+        this.mapper = mapper;
         this.objectMapper = objectMapper;
     }
 
     @KafkaListener(
-            topics = {"catalog.product.created", "catalog.product.updated"},
-            groupId = "search-service-indexer"
+            topics = {TOPIC_PRODUCT_CREATED, TOPIC_PRODUCT_UPDATED},
+            groupId = GROUP_INDEXER
     )
     public void onProductUpsert(@Payload String payload,
                                 @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
-
         try {
-            JsonNode node = objectMapper.readTree(payload);
-            String eventType = node.get("eventType").asText();
-            String productId = node.get("productId").asText();
+            ProductEventPayload eventPayload = objectMapper.readValue(payload, ProductEventPayload.class);
 
-            ProductDocument doc = new ProductDocument();
-            doc.setId(productId);
-            doc.setSku(getTextOrNull(node, "sku"));
-            doc.setName(getTextOrNull(node, "name"));
-            doc.setDescription(getTextOrNull(node, "description"));
-            doc.setBrand(getTextOrNull(node, "brand"));
-            doc.setCategoryId(getTextOrNull(node, "categoryId"));
-
-            if (node.has("basePrice") && !node.get("basePrice").isNull()) {
-                doc.setBasePrice(new BigDecimal(node.get("basePrice").asText()));
-            }
-
-            doc.setImage(getTextOrNull(node, "image"));
-            doc.setThumbnail(getTextOrNull(node, "thumbnail"));
-            
-            if (node.has("galleryImages") && node.get("galleryImages").isArray()) {
-                java.util.List<String> gImgs = new java.util.ArrayList<>();
-                for (JsonNode imgNode : node.get("galleryImages")) {
-                    gImgs.add(imgNode.asText());
-                }
-                doc.setGalleryImages(gImgs);
-            }
-            
-            doc.setAltText(getTextOrNull(node, "altText"));
-            doc.setActive(node.has("active") && node.get("active").asBoolean(true));
-            doc.setUpdatedAt(Instant.now());
-
-            searchService.indexProduct(doc)
+            indexingService.indexProduct(mapper.toDocument(eventPayload))
                     .doOnSuccess(d -> log.info(
                             "Indexed product from event. type={}, productId={}",
-                            eventType, productId))
+                            eventPayload.getEventType(), eventPayload.getProductId()))
                     .doOnError(e -> log.error(
                             "Failed to index product. type={}, productId={}",
-                            eventType, productId, e))
+                            eventPayload.getEventType(), eventPayload.getProductId(), e))
                     .subscribe();
 
         } catch (Exception e) {
@@ -82,29 +55,21 @@ public class ProductEventConsumer {
     }
 
     @KafkaListener(
-            topics = "catalog.product.deleted",
-            groupId = "search-service-indexer"
+            topics = TOPIC_PRODUCT_DELETED,
+            groupId = GROUP_INDEXER
     )
     public void onProductDeleted(@Payload String payload,
                                  @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
-
         try {
-            JsonNode node = objectMapper.readTree(payload);
-            String productId = node.get("productId").asText();
+            ProductEventPayload eventPayload = objectMapper.readValue(payload, ProductEventPayload.class);
 
-            searchService.deleteProduct(productId)
+            indexingService.deleteProduct(eventPayload.getProductId())
                     .doOnSuccess(v -> log.info(
-                            "Removed product from index. productId={}", productId))
+                            "Removed product from index. productId={}", eventPayload.getProductId()))
                     .subscribe();
 
         } catch (Exception e) {
             log.error("Failed to process product delete event. topic={}", topic, e);
         }
-    }
-
-    private String getTextOrNull(JsonNode node, String field) {
-        return node.has(field) && !node.get(field).isNull()
-                ? node.get(field).asText()
-                : null;
     }
 }
