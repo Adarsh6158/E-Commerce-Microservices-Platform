@@ -1,7 +1,12 @@
 package com.ecommerce.api_gateway.Filter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ecommerce.api_gateway.Config.interfaces.IGatewayLogger;
+import com.ecommerce.api_gateway.constants.GatewayConstants;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -11,19 +16,32 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.concurrent.TimeUnit;
+
 @Component
+@Tag(name = "Request Logging Filter", description = "Global Gateway Filter logging inbound requests and downstream execution latency & HTTP status codes")
 public class RequestLoggingFilter implements GlobalFilter, Ordered {
 
-    private static final Logger log = LoggerFactory.getLogger(RequestLoggingFilter.class);
+    private final IGatewayLogger logger;
+    private final MeterRegistry meterRegistry;
+
+    public RequestLoggingFilter(IGatewayLogger logger, MeterRegistry meterRegistry) {
+        this.logger = logger;
+        this.meterRegistry = meterRegistry;
+    }
 
     @Override
+    @Operation(summary = "Log HTTP exchange telemetry", description = "Logs entry trace containing HTTP method, path, query parameters, client IP, user ID, and correlation ID. On reactive chain completion, captures the response status code and execution latency, emitting detailed audit logs categorized by HTTP response status level (INFO, WARN, ERROR).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "HTTP request logged and lifecycle trace finalized successfully")
+    })
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
         long startTime = System.currentTimeMillis();
         ServerHttpRequest request = exchange.getRequest();
 
-        String correlationId = exchange.getAttribute("correlationId");
-        String userId = exchange.getAttribute("userId");
+        String correlationId = exchange.getAttribute(GatewayConstants.CORRELATION_ID_ATTR);
+        String userId = exchange.getAttribute(GatewayConstants.USER_ID_ATTR);
         String method = request.getMethod().name();
         String path = request.getURI().getPath();
         String query = request.getURI().getQuery();
@@ -32,7 +50,7 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
                 ? request.getRemoteAddress().getAddress().getHostAddress()
                 : "unknown";
 
-        log.info(">>> GATEWAY REQUEST: method={}, path={}, query={}, clientIp={}, userId={}, correlationId={}",
+        logger.info(RequestLoggingFilter.class, ">>> GATEWAY REQUEST: method={}, path={}, query={}, clientIp={}, userId={}, correlationId={}",
                 method, path, query, clientIp, userId, correlationId);
 
         return chain.filter(exchange)
@@ -45,14 +63,23 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
                             ? response.getStatusCode().value()
                             : 0;
 
+                    org.springframework.cloud.gateway.route.Route route = exchange.getAttribute(org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
+                    String routeId = route != null ? route.getId() : "unknown_route";
+                    
+                    meterRegistry.timer("gateway.requests",
+                            "route_id", routeId,
+                            "http_status", String.valueOf(statusCode),
+                            "downstream_service", routeId)
+                            .record(duration, TimeUnit.MILLISECONDS);
+
                     if (statusCode >= 500) {
-                        log.error("<<< GATEWAY RESPONSE: method={}, path={}, status={}, duration={}ms, correlationId={}",
+                        logger.error(RequestLoggingFilter.class, "<<< GATEWAY RESPONSE: method={}, path={}, status={}, duration={}ms, correlationId={}",
                                 method, path, statusCode, duration, correlationId);
                     } else if (statusCode >= 400) {
-                        log.warn("<<< GATEWAY RESPONSE: method={}, path={}, status={}, duration={}ms, correlationId={}",
+                        logger.warn(RequestLoggingFilter.class, "<<< GATEWAY RESPONSE: method={}, path={}, status={}, duration={}ms, correlationId={}",
                                 method, path, statusCode, duration, correlationId);
                     } else {
-                        log.info("<<< GATEWAY RESPONSE: method={}, path={}, status={}, duration={}ms, correlationId={}",
+                        logger.info(RequestLoggingFilter.class, "<<< GATEWAY RESPONSE: method={}, path={}, status={}, duration={}ms, correlationId={}",
                                 method, path, statusCode, duration, correlationId);
                     }
                 });
@@ -60,7 +87,6 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        // After auth filter, before routing
         return Ordered.HIGHEST_PRECEDENCE + 10;
     }
 }
