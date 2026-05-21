@@ -281,7 +281,7 @@ gateway:
     secret: ${JWT_SECRET:ZwNvbW1lcmNlLXBsYXRmb3JtLXN1cGVyLXNlY3JldC1rZXitdGhhdC1pcy1sb25nLWVub3VnaC1mb3ItaG1hYy1zaGEyNTY==}
     expiration-ms: 3600000
   auth:
-    excluded-paths: /api/auth/login,/api/auth/register,/api/auth/refresh,/api/products/**,/api/search/**,/api/categories/**,/api/pricing/calculator
+    excluded-paths: /api/auth/login,/api/auth/register,/api/auth/refresh,/api/products/**,/api/search/**,/api/categories/**,/api/pricing/calculator,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html,/webjars/**
 
 
 # Actuator
@@ -311,3 +311,13 @@ logging:
     io.github.resilience4j: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{correlationId}] %-5level %logger{36} - %msg%n"
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    try-it-out-enabled: true
+    operations-sorter: alpha
