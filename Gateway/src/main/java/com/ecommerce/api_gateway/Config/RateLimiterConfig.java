@@ -23,7 +23,6 @@ public class RateLimiterConfig {
     @Bean
     public KeyResolver userKeyResolver() {
         return exchange -> {
-            // Prefer userId from JWT (set by AuthenticationFilter), fall back to IP
             String userId = exchange.getAttribute("userId");
             if (userId != null) {
                 return Mono.just(userId);
