@@ -168,13 +168,13 @@ class IndexingServiceImplTest {
         @Test
         @DisplayName("should reindex products successfully from catalog")
         void reindexAllSuccess() {
-            WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
-            WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+            WebClient.RequestHeadersUriSpec<?> uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+            WebClient.RequestHeadersSpec<?> headersSpec = mock(WebClient.RequestHeadersSpec.class);
             WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
 
-            when(catalogWebClient.get()).thenReturn(uriSpec);
-            when(uriSpec.uri(anyString())).thenReturn(headersSpec);
-            when(headersSpec.retrieve()).thenReturn(responseSpec);
+            doReturn(uriSpec).when(catalogWebClient).get();
+            doReturn(headersSpec).when(uriSpec).uri(anyString());
+            doReturn(responseSpec).when(headersSpec).retrieve();
             
             ProductDocument doc1 = createProduct("1", "Prod1");
             ProductDocument doc2 = createProduct("2", "Prod2");
@@ -194,13 +194,13 @@ class IndexingServiceImplTest {
         @Test
         @DisplayName("should return 0 when catalog has no products")
         void reindexAllEmpty() {
-            WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
-            WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
+            WebClient.RequestHeadersUriSpec<?> uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+            WebClient.RequestHeadersSpec<?> headersSpec = mock(WebClient.RequestHeadersSpec.class);
             WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
 
-            when(catalogWebClient.get()).thenReturn(uriSpec);
-            when(uriSpec.uri(anyString())).thenReturn(headersSpec);
-            when(headersSpec.retrieve()).thenReturn(responseSpec);
+            doReturn(uriSpec).when(catalogWebClient).get();
+            doReturn(headersSpec).when(uriSpec).uri(anyString());
+            doReturn(responseSpec).when(headersSpec).retrieve();
             
             when(responseSpec.bodyToFlux(ProductDocument.class)).thenReturn(Flux.empty());
 
