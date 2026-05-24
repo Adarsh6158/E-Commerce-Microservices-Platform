@@ -21,6 +21,22 @@ spring:
         enable.idempotence: true
         max.in.flight.requests.per.connection: 5
 
+catalog:
+  cache:
+    prefix: "product:"
+    ttl-minutes: 5
+  images:
+    upload-dir: ${APP_IMAGES_UPLOAD_DIR:./uploads/products}
+    base-url: ${APP_IMAGES_BASE_URL:http://localhost:8082/products/images}
+    max-file-size-bytes: 5242880
+    allowed-types: image/jpeg,image/png,image/webp,image/gif
+  order-service:
+    host: ${ORDER_SERVICE_HOST:localhost}
+    port: ${ORDER_SERVICE_PORT:8087}
+  web-client:
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000
+
 management:
   endpoints:
     web:
