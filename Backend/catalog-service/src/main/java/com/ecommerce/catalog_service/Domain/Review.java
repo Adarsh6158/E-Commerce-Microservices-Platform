@@ -23,13 +23,13 @@ public class Review {
 
     private String userName;
 
-    private int rating; // 1-5
+    private int rating;
 
     private String title;
 
     private String comment;
 
-    private boolean verified; // purchased the product
+    private boolean verified;
 
     @CreatedDate
     private Instant createdAt;
