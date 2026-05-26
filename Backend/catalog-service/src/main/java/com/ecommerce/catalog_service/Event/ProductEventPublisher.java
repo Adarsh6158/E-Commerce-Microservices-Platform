@@ -1,5 +1,6 @@
 package com.ecommerce.catalog_service.Event;
 
+import com.ecommerce.catalog_service.Constant.EventConstants;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -16,10 +17,6 @@ public class ProductEventPublisher {
 
     private static final Logger log = LoggerFactory.getLogger(ProductEventPublisher.class);
 
-    private static final String TOPIC_PRODUCT_UPDATED = "catalog.product.updated";
-    private static final String TOPIC_PRODUCT_CREATED = "catalog.product.created";
-    private static final String TOPIC_PRODUCT_DELETED = "catalog.product.deleted";
-
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
@@ -31,10 +28,10 @@ public class ProductEventPublisher {
 
     public void publish(ProductEvent event) {
         String topic = switch (event.eventType()) {
-            case "CREATED" -> TOPIC_PRODUCT_CREATED;
-            case "UPDATED" -> TOPIC_PRODUCT_UPDATED;
-            case "DELETED" -> TOPIC_PRODUCT_DELETED;
-            default -> TOPIC_PRODUCT_UPDATED;
+            case EventConstants.EVENT_TYPE_CREATED -> EventConstants.TOPIC_PRODUCT_CREATED;
+            case EventConstants.EVENT_TYPE_UPDATED -> EventConstants.TOPIC_PRODUCT_UPDATED;
+            case EventConstants.EVENT_TYPE_DELETED -> EventConstants.TOPIC_PRODUCT_DELETED;
+            default -> EventConstants.TOPIC_PRODUCT_UPDATED;
         };
 
         try {
@@ -45,12 +42,12 @@ public class ProductEventPublisher {
                     new ProducerRecord<>(topic, key, payload);
 
             record.headers().add(new RecordHeader(
-                    "correlationId",
+                    EventConstants.HEADER_CORRELATION_ID,
                     event.correlationId().getBytes(StandardCharsets.UTF_8)
             ));
 
             record.headers().add(new RecordHeader(
-                    "eventType",
+                    EventConstants.HEADER_EVENT_TYPE,
                     event.eventType().getBytes(StandardCharsets.UTF_8)
             ));
 
