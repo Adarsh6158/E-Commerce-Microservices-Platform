@@ -1,10 +1,10 @@
-package com.ecommerce.order_service.Dto;
+package com.ecommerce.order_service.Dto.Response;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-public record OrderDto(
+public record OrderResponse(
         String id,
         String userId,
         String status,
@@ -13,7 +13,7 @@ public record OrderDto(
         String shippingAddress,
         String correlationId,
         String failureReason,
-        List<OrderItemDto> items,
+        List<OrderItemResponse> items,
         Instant createdAt,
         Instant updatedAt
 ) {}

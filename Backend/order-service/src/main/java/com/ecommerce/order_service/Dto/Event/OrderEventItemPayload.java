@@ -1,12 +1,11 @@
-package com.ecommerce.order_service.Dto;
+package com.ecommerce.order_service.Dto.Event;
 
 import java.math.BigDecimal;
 
-public record OrderItemDto(
+public record OrderEventItemPayload(
         String productId,
         String sku,
         String productName,
         int quantity,
-        BigDecimal unitPrice,
-        BigDecimal subtotal
+        BigDecimal unitPrice
 ) {}
