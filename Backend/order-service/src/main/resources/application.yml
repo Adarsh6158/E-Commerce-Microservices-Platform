@@ -60,3 +60,8 @@ logging:
     com.ecommerce.order_service: DEBUG
     org.springframework.r2dbc: INFO
     org.springframework.kafka: INFO
+
+order:
+  default-currency: USD
+  currency-symbol: "$"
+  company-name: ShopFlux
