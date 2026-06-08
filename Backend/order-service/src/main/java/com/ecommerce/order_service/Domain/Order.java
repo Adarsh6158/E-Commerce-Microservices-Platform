@@ -19,7 +19,7 @@ public class Order {
     private String userId;
 
     @Indexed
-    private String status; // PENDING, INVENTORY_RESERVED, PAYMENT_PROCESSING, CONFIRMED, CANCELLED, FAILED
+    private String status;
 
     private BigDecimal totalAmount;
 
